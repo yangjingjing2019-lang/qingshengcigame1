@@ -300,7 +300,7 @@
     }
 
     function shareToWhatsApp() {
-        const content = `【VTC 甜甜圈挑戰】\n姓名：${userName}\n成績：${score}/100\n我已完成20個普通話輕聲詞挑戰！`;
+        const content = `【 普通話輕聲詞甜甜圈挑戰】\n姓名：${userName}\n成績：${score}/100\n我已完成普通話輕聲詞挑戰！`;
         navigator.clipboard.writeText(content).then(() => {
             alert("成績已複製！");
             window.location.href = `whatsapp://send?text=${encodeURIComponent(content)}`;
@@ -308,4 +308,5 @@
     }
 </script>
 </body>
+
 </html>
