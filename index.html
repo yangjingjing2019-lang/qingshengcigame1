@@ -1,314 +1,974 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>輕聲詞語趣味挑戰</title>
-    <style>
-        :root {
-            --primary-green: #25D366;
-            --vtc-blue: #005696;
-            --bg-color: #fff9f0;
-            --card-word-bg: #fff;
-            --card-pinyin-bg: #fff5f7;
-            --round-font: "Yuanti SC", "YouYuan", "微軟正黑體", "Microsoft JhengHei", sans-serif;
-            /* 修改拼音字體：優先使用系統預設無襯線，確保聲調符號不位移 */
-            --pinyin-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>輕聲詞語趣味挑戰</title>
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+<style>
+:root {
+    --primary-green: #25d366;
+    --vtc-blue: #005696;
+    --bg-color: #fff9f0;
+    --pink: #d63384;
+    --round-font: "Yuanti SC", "YouYuan", "微軟正黑體",
+                  "Microsoft JhengHei", sans-serif;
+    --pinyin-font: -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", Roboto, Arial, sans-serif;
+}
 
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            font-family: var(--round-font);
-            background-color: var(--bg-color);
-            background-image: radial-gradient(#ffe4d1 1.5px, transparent 1.5px);
-            background-size: 30px 30px;
-            overflow: hidden; touch-action: none;
-        }
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
 
-        /* 遊戲指令說明 */
-        #game-instruction {
-            position: fixed; top: 70px; width: 100%; text-align: center;
-            padding: 10px 20px; color: #856404; background-color: #fff3cd;
-            border-bottom: 1px solid #ffeeba; font-size: 0.95rem; z-index: 80;
-            font-weight: bold; line-height: 1.4;
-        }
+html, body {
+    margin: 0;
+    width: 100%;
+    min-height: 100%;
+    font-family: var(--round-font);
+    background-color: var(--bg-color);
+    background-image: radial-gradient(#ffe4d1 1.5px, transparent 1.5px);
+    background-size: 30px 30px;
+}
 
-        #game-title {
-            position: fixed; top: 15px; right: 15px;
-            font-size: 0.9rem; color: var(--vtc-blue); font-weight: bold; z-index: 100;
-            background: rgba(255,255,255,0.8); padding: 5px 12px; border-radius: 20px;
-        }
+button, input {
+    font: inherit;
+}
 
-        #login-screen {
-            position: fixed; inset: 0; background: white;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 1000; padding: 20px; text-align: center;
-        }
-        .start-btn {
-            padding: 15px 60px; background: #d63384; color: white;
-            border: none; border-radius: 35px; cursor: pointer; font-size: 1.1rem;
-            box-shadow: 0 5px #a02060;
-        }
+button {
+    cursor: pointer;
+}
 
-        #game-container { display: none; width: 100%; height: 100%; position: relative; }
+button:focus-visible, input:focus-visible {
+    outline: 3px solid var(--vtc-blue);
+    outline-offset: 4px;
+}
 
-        #score-board {
-            position: fixed; top: 15px; left: 15px; font-size: 1rem; 
-            background: white; padding: 10px 15px; border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 90;
-        }
+[hidden] {
+    display: none !important;
+}
 
-        #donut {
-            position: absolute; width: 160px; height: 160px;
-            cursor: grab; z-index: 100; left: 50%; top: 45%; 
-            transform: translate(-50%, -50%);
-            display: flex; align-items: center; justify-content: center;
-            user-select: none; transition: transform 0.1s;
-        }
-        .donut-svg { width: 100%; height: 100%; filter: drop-shadow(0 8px 10px rgba(0,0,0,0.2)); }
-        #word-text {
-            position: absolute; z-index: 110;
-            font-weight: 900; font-size: 1.8rem; color: #4a2710;
-            text-shadow: 2px 2px 0px #fff, -2px -2px 0px #fff, 2px -2px 0px #fff, -2px 2px 0px #fff;
-            pointer-events: none;
-        }
+#game-title {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    font-size: .9rem;
+    color: var(--vtc-blue);
+    font-weight: bold;
+    z-index: 100;
+    background: rgba(255,255,255,.9);
+    padding: 5px 12px;
+    border-radius: 20px;
+}
 
-        .basket-area {
-            position: absolute; bottom: 8%; width: 100%;
-            display: flex; justify-content: space-around; padding: 0 10px;
-        }
-        .basket {
-            width: 45%; max-width: 170px; height: 120px;
-            background: #fff; border: 4px dashed #ff85a1;
-            border-radius: 20px; position: relative;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 8px 0 #ffd1dc;
-        }
-        .basket-label { font-size: 1.3rem; color: #d63384; font-weight: bold; }
+#login-screen {
+    position: fixed;
+    inset: 0;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+    overflow-y: auto;
+    z-index: 1000;
+}
 
-        /* 匯總頁面樣式修正 */
-        #summary-screen {
-            display: none; position: fixed; inset: 0; background: #fffcf9;
-            overflow-y: auto; padding: 20px; z-index: 2000;
-        }
-        .summary-header { text-align: center; margin-bottom: 25px; }
-        .summary-header h2 { color: #d63384; font-size: 1.8rem; margin-bottom: 5px; }
+#login-screen h1 {
+    color: var(--pink);
+    font-size: clamp(1.8rem, 7vw, 2.5rem);
+}
 
-        .word-grid {
-            display: grid; grid-template-columns: 1fr; gap: 12px;
-            max-width: 500px; margin: 0 auto; padding-bottom: 40px;
-        }
-        .word-card-pair {
-            display: flex; min-height: 65px; /* 使用 min-height */
-            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-            border-radius: 12px; overflow: hidden;
-            border: 1px solid #eee;
-        }
-        .card-left {
-            flex: 1; background: var(--card-word-bg);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem; font-weight: bold; color: #333;
-            padding: 10px;
-        }
-        .card-right {
-            flex: 1.3; background: var(--card-pinyin-bg);
-            display: flex; align-items: center; justify-content: center;
-            font-family: var(--pinyin-font); 
-            font-size: 1.15rem; /* 字號適中 */
-            color: #d63384; 
-            border-left: 2px dashed #ffd1dc;
-            padding: 10px;
-            letter-spacing: 0.5px; /* 增加字母間距防止符號擁擠 */
-            text-rendering: optimizeLegibility;
-            -webkit-font-smoothing: antialiased;
-        }
+#login-screen p {
+    color: #666;
+    line-height: 1.8;
+}
 
-        .whatsapp-btn {
-            background-color: var(--primary-green); color: white;
-            width: 100%; max-width: 500px; padding: 18px; border-radius: 15px; 
-            font-weight: bold; margin: 20px auto 40px; display: block; 
-            text-align: center; text-decoration: none; font-size: 1.1rem;
-        }
-    </style>
+#username {
+    padding: 15px;
+    margin: 25px 0;
+    border-radius: 30px;
+    border: 2px solid #ffccd5;
+    width: 80%;
+    max-width: 300px;
+    text-align: center;
+}
+
+.start-btn, .next-btn {
+    padding: 15px 40px;
+    background: var(--pink);
+    color: white;
+    border: none;
+    border-radius: 35px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    box-shadow: 0 5px #a02060;
+}
+
+#game-container {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 460px;
+    position: relative;
+    overflow: hidden;
+}
+
+#score-board {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 1rem;
+    background: white;
+    padding: 10px 15px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,.1);
+    z-index: 90;
+    line-height: 1.5;
+}
+
+#game-instruction {
+    position: absolute;
+    top: 96px;
+    width: 100%;
+    text-align: center;
+    padding: 10px 15px;
+    color: #856404;
+    background: #fff3cd;
+    border-bottom: 1px solid #ffeeba;
+    font-size: .95rem;
+    font-weight: bold;
+    line-height: 1.5;
+    z-index: 80;
+}
+
+#donut {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    left: 50%;
+    top: 48%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    z-index: 100;
+}
+
+#donut.dragging {
+    cursor: grabbing;
+}
+
+.donut-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 8px 10px rgba(0,0,0,.2));
+    pointer-events: none;
+}
+
+#word-text {
+    position: absolute;
+    font-weight: 900;
+    font-size: 1.8rem;
+    color: #4a2710;
+    text-shadow:
+        2px 2px 0 #fff, -2px -2px 0 #fff,
+        2px -2px 0 #fff, -2px 2px 0 #fff;
+    pointer-events: none;
+}
+
+.basket-area {
+    position: absolute;
+    bottom: 8%;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    gap: 15px;
+    padding: 0 15px;
+}
+
+.basket {
+    width: 45%;
+    max-width: 200px;
+    height: 120px;
+    background: white;
+    border: 4px dashed #ff85a1;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 0 #ffd1dc;
+    color: var(--pink);
+    font-size: clamp(1rem, 4vw, 1.3rem);
+    font-weight: bold;
+    transition: background .15s, border-color .15s;
+}
+
+.basket.over {
+    background: #fff0f5;
+    border-color: var(--pink);
+}
+
+.basket:disabled {
+    cursor: default;
+}
+
+/* 每題答案回饋 */
+#feedback-screen {
+    position: fixed;
+    inset: 0;
+    background: rgba(60,30,40,.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+    z-index: 1500;
+}
+
+.feedback-card {
+    width: 100%;
+    max-width: 420px;
+    max-height: calc(100dvh - 40px);
+    overflow-y: auto;
+    padding: 28px 22px;
+    border-radius: 24px;
+    background: white;
+    text-align: center;
+    box-shadow: 0 15px 45px rgba(0,0,0,.2);
+    border-top: 8px solid var(--primary-green);
+}
+
+.feedback-card.incorrect {
+    border-top-color: #e05252;
+}
+
+#feedback-title {
+    margin: 0 0 12px;
+    font-size: 1.8rem;
+    color: #187943;
+}
+
+.incorrect #feedback-title {
+    color: #bd3333;
+}
+
+#feedback-word {
+    margin: 10px 0;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.pinyin {
+    font-family: var(--pinyin-font);
+    letter-spacing: .5px;
+}
+
+#feedback-pinyin {
+    margin: 8px 0 18px;
+    color: var(--pink);
+    font-size: 1.6rem;
+}
+
+.answer-details {
+    padding: 12px;
+    border-radius: 14px;
+    background: #fff5f7;
+    line-height: 1.9;
+    color: #444;
+}
+
+#feedback-score {
+    font-weight: bold;
+    color: var(--vtc-blue);
+    margin: 18px 0;
+}
+
+.feedback-note {
+    color: #666;
+    font-size: .9rem;
+    line-height: 1.5;
+}
+
+.next-btn {
+    margin: 8px 0;
+    width: 100%;
+}
+
+/* 完成頁面 */
+#summary-screen {
+    position: fixed;
+    inset: 0;
+    background: #fffcf9;
+    overflow-y: auto;
+    padding: 24px 16px;
+    z-index: 2000;
+}
+
+.summary-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.summary-header h2 {
+    color: var(--pink);
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+}
+
+#final-stats {
+    font-weight: bold;
+    color: var(--pink);
+    line-height: 1.8;
+}
+
+.word-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+.word-card {
+    border: 1px solid #eee;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,.05);
+    background: white;
+}
+
+.word-card-pair {
+    display: flex;
+    min-height: 65px;
+}
+
+.card-left, .card-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+}
+
+.card-left {
+    flex: 1;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.card-right {
+    flex: 1.3;
+    background: #fff5f7;
+    font-size: 1.15rem;
+    color: var(--pink);
+    border-left: 2px dashed #ffd1dc;
+}
+
+.record-detail {
+    padding: 10px 12px;
+    font-size: .9rem;
+    line-height: 1.6;
+    background: #eef9f1;
+    color: #21663c;
+}
+
+.record-detail.incorrect {
+    background: #fff0f0;
+    color: #a33232;
+}
+
+.summary-actions {
+    max-width: 560px;
+    margin: 24px auto 40px;
+    display: grid;
+    gap: 14px;
+}
+
+.action-btn {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 15px;
+    color: white;
+    background: #187943;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.action-btn.share {
+    background: #128c45;
+}
+
+.action-btn.restart {
+    background: var(--pink);
+}
+
+#copy-status {
+    text-align: center;
+    color: #555;
+    margin: 0;
+}
+
+@media (max-height: 600px) {
+    #donut {
+        width: 125px;
+        height: 125px;
+        top: 50%;
+    }
+
+    #word-text {
+        font-size: 1.5rem;
+    }
+
+    .basket-area {
+        bottom: 5%;
+    }
+
+    .basket {
+        height: 90px;
+    }
+}
+</style>
 </head>
-<body>
 
+<body>
 <div id="game-title">輕聲詞語趣味挑戰</div>
 
 <div id="login-screen">
-    <div class="logo-area">
-        <h1 style="color:#d63384; font-size:2.5rem;">🍩 甜甜圈大師</h1>
-        <p style="color:#666;">            
-            網頁僅供內部使用。<br>
-            普通話培訓測試中心 版權所有。</p>
-    </div>
-    <input type="text" id="username" style="padding:15px; margin:25px; border-radius:30px; border:2px solid #ffccd5; width:80%; max-width:300px; text-align:center;" placeholder="請輸入姓名" maxlength="10">
-    <button class="start-btn" onclick="startGame()">開始挑戰</button>
+    <h1>🍩 甜甜圈大師</h1>
+    <p>
+        網頁僅供內部使用。<br>
+        普通話培訓測試中心 版權所有。
+    </p>
+    <label for="username">請輸入姓名</label>
+    <input
+        type="text"
+        id="username"
+        placeholder="姓名"
+        maxlength="10"
+        autocomplete="name"
+    >
+    <button class="start-btn" id="start-btn">開始挑戰</button>
+    <p>共 20 題，每題答對得 5 分，滿分 100 分。</p>
 </div>
 
-<div id="game-container">
-    <div id="score-board">
+<div id="game-container" hidden>
+    <div id="score-board" aria-live="polite">
         <div>進度：<span id="progress">1</span> / 20</div>
         <div>分數：<span id="score">0</span></div>
     </div>
 
     <div id="game-instruction">
-        請判斷以下詞語是否輕聲詞，<br>並把甜甜圈拖動到相應籃子裡。
+        請判斷詞語是否為輕聲詞，<br>
+        把甜甜圈拖到相應籃子，或直接點擊籃子。
     </div>
-    
+
     <div id="donut">
-        <svg class="donut-svg" viewBox="0 0 200 200">
-            <circle cx="100" cy="100" r="80" fill="#f3b167" />
-            <path d="M100,30 A70,70 0 1,1 99.9,30 C110,40 120,30 135,45 C150,60 140,75 160,85 C180,95 165,115 155,135 C145,155 125,145 110,165 C95,185 75,165 55,155 C35,145 45,125 30,110 C15,95 35,75 40,55 C45,35 75,45 100,30" fill="#ff85a1" />
-            <rect x="70" y="55" width="8" height="3" rx="1.5" fill="#fff" transform="rotate(30 70 55)" />
-            <rect x="130" y="65" width="8" height="3" rx="1.5" fill="#ffd1dc" transform="rotate(-20 130 65)" />
-            <rect x="60" y="120" width="8" height="3" rx="1.5" fill="#9cfffa" transform="rotate(45 60 120)" />
-            <rect x="110" y="145" width="8" height="3" rx="1.5" fill="#fff9c4" transform="rotate(10 110 145)" />
-            <rect x="150" y="110" width="8" height="3" rx="1.5" fill="#fff" transform="rotate(-60 150 110)" />
-            <circle cx="100" cy="100" r="25" fill="#fff9f0" />
+        <svg class="donut-svg" viewBox="0 0 200 200" aria-hidden="true">
+            <circle cx="100" cy="100" r="80" fill="#f3b167"/>
+            <path
+                d="M100,30 A70,70 0 1,1 99.9,30
+                C110,40 120,30 135,45
+                C150,60 140,75 160,85
+                C180,95 165,115 155,135
+                C145,155 125,145 110,165
+                C95,185 75,165 55,155
+                C35,145 45,125 30,110
+                C15,95 35,75 40,55
+                C45,35 75,45 100,30"
+                fill="#ff85a1"
+            />
+            <rect x="70" y="55" width="8" height="3" rx="1.5"
+                  fill="#fff" transform="rotate(30 70 55)"/>
+            <rect x="130" y="65" width="8" height="3" rx="1.5"
+                  fill="#ffd1dc" transform="rotate(-20 130 65)"/>
+            <rect x="60" y="120" width="8" height="3" rx="1.5"
+                  fill="#9cfffa" transform="rotate(45 60 120)"/>
+            <rect x="110" y="145" width="8" height="3" rx="1.5"
+                  fill="#fff9c4" transform="rotate(10 110 145)"/>
+            <rect x="150" y="110" width="8" height="3" rx="1.5"
+                  fill="#fff" transform="rotate(-60 150 110)"/>
+            <circle cx="100" cy="100" r="25" fill="#fff9f0"/>
         </svg>
         <div id="word-text">詞語</div>
     </div>
 
     <div class="basket-area">
-        <div class="basket" id="neutral-basket"><div class="basket-label">💖 輕聲詞</div></div>
-        <div class="basket" id="normal-basket"><div class="basket-label">✨ 非輕聲詞</div></div>
+        <button class="basket" id="neutral-basket" type="button">
+            💖 輕聲詞
+        </button>
+        <button class="basket" id="normal-basket" type="button">
+            ✨ 非輕聲詞
+        </button>
     </div>
 </div>
 
-<div id="summary-screen">
+<div id="feedback-screen" hidden>
+    <section
+        class="feedback-card"
+        id="feedback-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="feedback-title"
+        aria-describedby="answer-details"
+    >
+        <h2 id="feedback-title"></h2>
+        <div id="feedback-word"></div>
+        <div id="feedback-pinyin" class="pinyin" lang="zh-Latn"></div>
+
+        <div class="answer-details" id="answer-details">
+            <div>你的選擇：<strong id="your-answer"></strong></div>
+            <div>正確答案：<strong id="correct-answer"></strong></div>
+        </div>
+
+        <p id="feedback-note" class="feedback-note"></p>
+        <p id="feedback-score"></p>
+        <button class="next-btn" id="next-btn" type="button">
+            下一題 →
+        </button>
+    </section>
+</div>
+
+<div id="summary-screen" hidden>
     <div class="summary-header">
-        <h2>🍩 挑戰成功！</h2>
-        <p id="final-stats" style="font-weight:bold; color:#d63384;"></p>
-        <p style="font-size: 0.9rem; color: #999;">點擊下方的按鈕可複製成績</p>
+        <h2 id="summary-title" tabindex="-1">🍩 挑戰完成！</h2>
+        <p id="final-stats"></p>
+        <p>以下是你的作答紀錄及拼音答案：</p>
     </div>
+
     <div id="word-list" class="word-grid"></div>
-    <a href="javascript:void(0)" class="whatsapp-btn" onclick="shareToWhatsApp()">✅ 複製紀錄並回報</a>
+
+    <div class="summary-actions">
+        <button class="action-btn" id="copy-btn" type="button">
+            ✅ 複製成績紀錄
+        </button>
+        <button class="action-btn share" id="share-btn" type="button">
+            💬 透過 WhatsApp 分享
+        </button>
+        <p id="copy-status" role="status"></p>
+        <button class="action-btn restart" id="restart-btn" type="button">
+            🔄 再挑戰一次
+        </button>
+    </div>
 </div>
 
 <script>
-    const neutralWords = [
-        {w:"功夫", p:"gōng fu"}, {w:"疙瘩", p:"gē da"}, {w:"意思", p:"yì si"}, {w:"風箏", p:"fēng zheng"},
-        {w:"包袱", p:"bāo fu"}, {w:"時候", p:"shí hou"}, {w:"事情", p:"shì qing"}, {w:"喜歡", p:"xǐ huan"},
-        {w:"眼睛", p:"yǎn jing"}, {w:"部分", p:"bù fen"}
-    ];
-    const normalWords = [
-        {w:"列車", p:"liè chē"}, {w:"力圖", p:"lì tú"}, {w:"接觸", p:"jiē chù"}, {w:"季節", p:"jì jié"},
-        {w:"檸檬", p:"níng méng"}, {w:"農業", p:"nóng yè"}, {w:"喪氣", p:"sàng qì"}, {w:"森林", p:"sēn lín"},
-        {w:"溫度", p:"wēn dù"}, {w:"幼苗", p:"yòu miáo"}
-    ];
+"use strict";
 
-    let allData = [...neutralWords.map(o=>({...o,t:'n'})), ...normalWords.map(o=>({...o,t:'r'}))].sort(()=>Math.random()-0.5);
-    let score=0, currentIdx=0, userName="";
-    const donut = document.getElementById('donut');
-    const wordDisplay = document.getElementById('word-text');
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    function playFeedback(isCorrect) {
+/* 沿用原有題庫；t: n = 輕聲詞，r = 非輕聲詞 */
+const neutralWords = [
+    { w: "功夫", p: "gōng fu" },
+    { w: "疙瘩", p: "gē da" },
+    { w: "意思", p: "yì si" },
+    { w: "風箏", p: "fēng zheng" },
+    { w: "包袱", p: "bāo fu" },
+    { w: "時候", p: "shí hou" },
+    { w: "事情", p: "shì qing" },
+    { w: "喜歡", p: "xǐ huan" },
+    { w: "眼睛", p: "yǎn jing" },
+    { w: "部分", p: "bù fen" }
+];
+
+const normalWords = [
+    { w: "列車", p: "liè chē" },
+    { w: "力圖", p: "lì tú" },
+    { w: "接觸", p: "jiē chù" },
+    { w: "季節", p: "jì jié" },
+    { w: "檸檬", p: "níng méng" },
+    { w: "農業", p: "nóng yè" },
+    { w: "喪氣", p: "sàng qì" },
+    { w: "森林", p: "sēn lín" },
+    { w: "溫度", p: "wēn dù" },
+    { w: "幼苗", p: "yòu miáo" }
+];
+
+const $ = id => document.getElementById(id);
+const donut = $("donut");
+const baskets = [$("neutral-basket"), $("normal-basket")];
+
+let allData = [];
+let records = [];
+let score = 0;
+let currentIdx = 0;
+let userName = "";
+let gameActive = false;
+let answered = false;
+let activePointer = null;
+let audioCtx = null;
+
+/* Fisher–Yates 洗牌 */
+function shuffle(items) {
+    const result = [...items];
+
+    for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+    }
+
+    return result;
+}
+
+function answerLabel(type) {
+    return type === "n" ? "輕聲詞" : "非輕聲詞";
+}
+
+/* 音效不可用時，不影響作答 */
+function prepareAudio() {
+    try {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+
+        if (!AudioClass) return;
+        if (!audioCtx) audioCtx = new AudioClass();
+
+        if (audioCtx.state === "suspended") {
+            audioCtx.resume().catch(() => {});
+        }
+    } catch (_) {
+        // 不支援音效時繼續遊戲
+    }
+}
+
+function playFeedback(isCorrect) {
+    try {
+        if (!audioCtx || audioCtx.state !== "running") return;
+
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        if (isCorrect) {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        } else {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(120, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-        }
+        const now = audioCtx.currentTime;
+        const duration = isCorrect ? .2 : .4;
+
+        osc.type = isCorrect ? "sine" : "triangle";
+        osc.frequency.setValueAtTime(isCorrect ? 880 : 120, now);
+        gain.gain.setValueAtTime(.15, now);
+        gain.gain.exponentialRampToValueAtTime(.001, now + duration);
+
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + (isCorrect ? 0.2 : 0.5));
+        osc.onended = () => {
+            osc.disconnect();
+            gain.disconnect();
+        };
+
+        osc.start(now);
+        osc.stop(now + duration);
+    } catch (_) {
+        // 音效失敗不影響計分
+    }
+}
+
+function startGame() {
+    const name = $("username").value.trim();
+
+    if (!name) {
+        alert("請輸入姓名！");
+        $("username").focus();
+        return;
     }
 
-    function startGame() {
-        userName = document.getElementById('username').value.trim();
-        if(!userName) { alert("請輸入姓名！"); return; }
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('game-container').style.display = 'block';
-        loadQuestion();
+    userName = name;
+    score = 0;
+    currentIdx = 0;
+    records = [];
+    answered = false;
+    gameActive = true;
+
+    allData = shuffle([
+        ...neutralWords.map(item => ({ ...item, t: "n" })),
+        ...normalWords.map(item => ({ ...item, t: "r" }))
+    ]);
+
+    prepareAudio();
+
+    $("login-screen").hidden = true;
+    $("summary-screen").hidden = true;
+    $("feedback-screen").hidden = true;
+    $("game-container").hidden = false;
+    $("score").textContent = "0";
+    $("copy-status").textContent = "";
+
+    loadQuestion();
+}
+
+function resetDonut() {
+    donut.style.left = "50%";
+    donut.style.top = "48%";
+    donut.style.transform = "translate(-50%, -50%)";
+    donut.classList.remove("dragging");
+    baskets.forEach(basket => basket.classList.remove("over"));
+}
+
+function loadQuestion() {
+    if (currentIdx >= allData.length) {
+        finishGame();
+        return;
     }
 
-    function loadQuestion() {
-        if(currentIdx >= 20) { finishGame(); return; }
-        const q = allData[currentIdx];
-        wordDisplay.innerText = q.w;
-        donut.style.left = "50%";
-        donut.style.top = "48%";
-        donut.style.transform = "translate(-50%, -50%) scale(1)";
-        document.getElementById('progress').innerText = currentIdx + 1;
+    answered = false;
+    baskets.forEach(basket => basket.disabled = false);
+    $("word-text").textContent = allData[currentIdx].w;
+    $("progress").textContent = currentIdx + 1;
+    resetDonut();
+    $("neutral-basket").focus({ preventScroll: true });
+}
+
+/* 提交答案：每題只可提交一次 */
+function submitAnswer(choice) {
+    if (!gameActive || answered) return;
+
+    answered = true;
+    baskets.forEach(basket => basket.disabled = true);
+
+    const question = allData[currentIdx];
+    const isCorrect = choice === question.t;
+    const earned = isCorrect ? 5 : 0;
+
+    score += earned;
+    records.push({
+        ...question,
+        choice,
+        isCorrect,
+        earned
+    });
+
+    $("score").textContent = score;
+    playFeedback(isCorrect);
+    resetDonut();
+
+    $("feedback-card").classList.toggle("incorrect", !isCorrect);
+    $("feedback-title").textContent =
+        isCorrect ? "✅ 答對了！" : "❌ 答錯了，再記一記！";
+    $("feedback-word").textContent = question.w;
+    $("feedback-pinyin").textContent = question.p;
+    $("your-answer").textContent = answerLabel(choice);
+    $("correct-answer").textContent = answerLabel(question.t);
+
+    $("feedback-note").textContent = question.t === "n"
+        ? "本題按輕聲讀法作答：後一音節讀輕聲，拼音不標聲調。"
+        : "本題不是輕聲詞：請留意拼音中各音節的聲調。";
+
+    $("feedback-score").textContent =
+        `本題 +${earned} 分｜目前總分：${score} / ${allData.length * 5}`;
+
+    $("next-btn").textContent =
+        currentIdx === allData.length - 1 ? "查看總成績 →" : "下一題 →";
+
+    $("feedback-screen").hidden = false;
+    $("next-btn").focus();
+}
+
+function nextQuestion() {
+    if (!answered || !gameActive) return;
+
+    $("feedback-screen").hidden = true;
+    currentIdx++;
+    loadQuestion();
+}
+
+/* 用籃子的實際範圍判定落點 */
+function containsPoint(element, x, y) {
+    const rect = element.getBoundingClientRect();
+
+    return x >= rect.left && x <= rect.right &&
+           y >= rect.top && y <= rect.bottom;
+}
+
+function basketAt(x, y) {
+    if (containsPoint($("neutral-basket"), x, y)) return "n";
+    if (containsPoint($("normal-basket"), x, y)) return "r";
+    return null;
+}
+
+/* Pointer Events 同時支援滑鼠、觸控及觸控筆 */
+donut.addEventListener("pointerdown", event => {
+    if (!gameActive || answered || activePointer !== null) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+    event.preventDefault();
+    prepareAudio();
+    activePointer = event.pointerId;
+    donut.setPointerCapture(event.pointerId);
+    donut.classList.add("dragging");
+});
+
+donut.addEventListener("pointermove", event => {
+    if (activePointer !== event.pointerId) return;
+
+    event.preventDefault();
+
+    const rect = $("game-container").getBoundingClientRect();
+    donut.style.left = `${event.clientX - rect.left}px`;
+    donut.style.top = `${event.clientY - rect.top}px`;
+    donut.style.transform = "translate(-50%, -50%) scale(1.1)";
+
+    baskets.forEach(basket => {
+        basket.classList.toggle(
+            "over",
+            containsPoint(basket, event.clientX, event.clientY)
+        );
+    });
+});
+
+function stopDrag(event, cancelled = false) {
+    if (activePointer !== event.pointerId) return;
+
+    activePointer = null;
+
+    if (donut.hasPointerCapture(event.pointerId)) {
+        donut.releasePointerCapture(event.pointerId);
     }
 
-    let isMoving = false;
-    function startDrag(e) { 
-        isMoving = true; 
-        donut.style.transition = "none";
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-    }
-    function moveDrag(e) {
-        if(!isMoving) return;
-        const touch = e.touches ? e.touches[0] : e;
-        donut.style.left = touch.clientX + 'px';
-        donut.style.top = touch.clientY + 'px';
-        donut.style.transform = "translate(-50%, -50%) scale(1.1)";
-    }
-    function endDrag(e) {
-        if(!isMoving) return;
-        isMoving = false;
-        const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-        const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-        const h = window.innerHeight;
-        const q = allData[currentIdx];
+    const choice = cancelled ? null : basketAt(event.clientX, event.clientY);
+    resetDonut();
 
-        if (y > h * 0.65) {
-            let choice = (x < window.innerWidth / 2) ? 'n' : 'r';
-            if (choice === q.t) { score += 5; playFeedback(true); } else { playFeedback(false); }
-            document.getElementById('score').innerText = score;
-            currentIdx++;
-            loadQuestion();
+    if (choice) submitAnswer(choice);
+}
+
+donut.addEventListener("pointerup", event => stopDrag(event));
+donut.addEventListener("pointercancel", event => stopDrag(event, true));
+donut.addEventListener("lostpointercapture", () => {
+    if (activePointer !== null) {
+        activePointer = null;
+        resetDonut();
+    }
+});
+
+/* 防止答案對話框的鍵盤焦點移到背景 */
+$("feedback-screen").addEventListener("keydown", event => {
+    if (event.key === "Tab") {
+        event.preventDefault();
+        $("next-btn").focus();
+    }
+});
+
+function finishGame() {
+    gameActive = false;
+    $("game-container").hidden = true;
+    $("feedback-screen").hidden = true;
+    $("summary-screen").hidden = false;
+
+    const correctCount = records.filter(item => item.isCorrect).length;
+    $("final-stats").textContent =
+        `${userName} 同學，你的得分：${score} / ${allData.length * 5}；` +
+        `答對 ${correctCount} 題，答錯 ${records.length - correctCount} 題。`;
+
+    const list = $("word-list");
+    list.replaceChildren();
+
+    records.forEach((item, index) => {
+        const card = document.createElement("div");
+        card.className = "word-card";
+
+        const pair = document.createElement("div");
+        pair.className = "word-card-pair";
+
+        const left = document.createElement("div");
+        left.className = "card-left";
+        left.textContent = item.w;
+
+        const right = document.createElement("div");
+        right.className = "card-right pinyin";
+        right.lang = "zh-Latn";
+        right.textContent = item.p;
+
+        const detail = document.createElement("div");
+        detail.className =
+            "record-detail" + (item.isCorrect ? "" : " incorrect");
+        detail.textContent =
+            `${index + 1}. ${item.isCorrect ? "✅ 答對" : "❌ 答錯"}｜` +
+            `你的選擇：${answerLabel(item.choice)}｜` +
+            `正確答案：${answerLabel(item.t)}｜+${item.earned} 分`;
+
+        pair.append(left, right);
+        card.append(pair, detail);
+        list.appendChild(card);
+    });
+
+    $("summary-screen").scrollTop = 0;
+    $("summary-title").focus({ preventScroll: true });
+}
+
+function reportText() {
+    const correctCount = records.filter(item => item.isCorrect).length;
+
+    return [
+        "【普通話輕聲詞甜甜圈挑戰】",
+        `姓名：${userName}`,
+        `成績：${score}/${allData.length * 5}`,
+        `答對：${correctCount}/${allData.length} 題`,
+        "我已完成普通話輕聲詞挑戰！"
+    ].join("\n");
+}
+
+/* HTTPS 優先使用 Clipboard API，否則嘗試後備複製方式 */
+async function copyReport() {
+    const content = reportText();
+
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(content);
         } else {
-            donut.style.transition = "all 0.3s ease";
-            loadQuestion();
+            const textarea = document.createElement("textarea");
+            textarea.value = content;
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.select();
+            textarea.setSelectionRange(0, textarea.value.length);
+
+            let success;
+            try {
+                success = document.execCommand("copy");
+            } finally {
+                textarea.remove();
+                $("copy-btn").focus({ preventScroll: true });
+            }
+
+            if (!success) throw new Error("Copy failed");
         }
-    }
 
-    donut.addEventListener('mousedown', startDrag);
-    donut.addEventListener('touchstart', startDrag);
-    window.addEventListener('mousemove', moveDrag);
-    window.addEventListener('touchmove', moveDrag, {passive: false});
-    window.addEventListener('mouseup', endDrag);
-    window.addEventListener('touchend', endDrag);
-
-    function finishGame() {
-        document.getElementById('game-container').style.display = 'none';
-        document.getElementById('summary-screen').style.display = 'block';
-        document.getElementById('final-stats').innerText = `${userName} 同學，你的得分：${score} / 100`;
-        const list = document.getElementById('word-list');
-        list.innerHTML = ""; // 清空
-        allData.forEach(item => {
-            const pair = document.createElement('div');
-            pair.className = 'word-card-pair';
-            pair.innerHTML = `
-                <div class="card-left">${item.w}</div>
-                <div class="card-right">${item.p}</div>
-            `;
-            list.appendChild(pair);
-        });
+        $("copy-status").textContent = "✅ 成績已複製，可貼上回報。";
+    } catch (_) {
+        $("copy-status").textContent =
+            "瀏覽器未允許自動複製，請在彈出視窗中手動複製。";
+        window.prompt("請複製以下成績紀錄：", content);
     }
+}
 
-    function shareToWhatsApp() {
-        const content = `【 普通話輕聲詞甜甜圈挑戰】\n姓名：${userName}\n成績：${score}/100\n我已完成普通話輕聲詞挑戰！`;
-        navigator.clipboard.writeText(content).then(() => {
-            alert("成績已複製！");
-            window.location.href = `whatsapp://send?text=${encodeURIComponent(content)}`;
-        });
-    }
+function shareToWhatsApp() {
+    const url = "https://wa.me/?text=" + encodeURIComponent(reportText());
+    window.open(url, "_blank", "noopener,noreferrer");
+}
+
+function restartGame() {
+    $("summary-screen").hidden = true;
+    $("login-screen").hidden = false;
+    $("username").focus();
+}
+
+$("start-btn").addEventListener("click", startGame);
+$("username").addEventListener("keydown", event => {
+    if (event.key === "Enter") startGame();
+});
+$("neutral-basket").addEventListener("click", () => {
+    prepareAudio();
+    submitAnswer("n");
+});
+$("normal-basket").addEventListener("click", () => {
+    prepareAudio();
+    submitAnswer("r");
+});
+$("next-btn").addEventListener("click", nextQuestion);
+$("copy-btn").addEventListener("click", copyReport);
+$("share-btn").addEventListener("click", shareToWhatsApp);
+$("restart-btn").addEventListener("click", restartGame);
 </script>
 </body>
-
 </html>
